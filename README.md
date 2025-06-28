@@ -5,7 +5,7 @@ This repository contains both the frontend and backend of the project.
 ## 📂 Project Structure
 
 ```
-/frontend    # React (Vite/CRA) app
+/frontend    # Next.js (Vite/CRA) app and Tailwind
 /backend     # Node.js (Express) server
 ```
 
@@ -116,7 +116,7 @@ fix: resolve CORS issue in backend
 | Name            | GitHub Profile                         | Role                 |
 | --------------- | -------------------------------------- | -------------------- |
 | Amgad Al-Ameri  | [@amga-d](https://github.com/amga-d)   | Maintainer / Backend |
-| Contributor One | [@Ravfael](https://github.com/Ravfael) | Frontend Developer   |
+| Ravfael Novfito | [@Ravfael](https://github.com/Ravfael) | Frontend Developer   |
 
 ---
 
