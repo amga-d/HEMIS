@@ -1,54 +1,105 @@
-# React + TypeScript + Vite
+# HEMIS - Integrated Hospital Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This application combines the HEMIS landing page with the dashboard into a single Next.js application.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Landing Page
+- Modern, responsive design
+- Hospital information sections
+- Contact information
+- FAQ section
+- Login modal with navigation to dashboard
 
-## Expanding the ESLint configuration
+### Dashboard
+- Executive dashboard with KPIs
+- Finance reporting
+- HR management
+- Compliance tracking
+- Analytics and insights
+- AI-powered insights
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Project Structure
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+├── app/
+│   ├── (dashboard)/           # Dashboard routes with authentication
+│   │   ├── layout.tsx        # Dashboard layout with sidebar
+│   │   ├── dashboard/        # Main dashboard
+│   │   ├── analytics/        # Analytics page
+│   │   ├── compliance/       # Compliance page
+│   │   ├── finance/          # Finance page
+│   │   └── hr/              # HR page
+│   ├── landing/             # Landing page
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Root page (redirects to landing)
+├── components/
+│   ├── landing/             # Landing page components
+│   │   ├── navbar.tsx
+│   │   ├── hero.tsx
+│   │   ├── about-us.tsx
+│   │   ├── more-info.tsx
+│   │   ├── get-in-touch.tsx
+│   │   ├── faq.tsx
+│   │   └── login-modal.tsx
+│   ├── ui/                  # Reusable UI components
+│   ├── auth-check.tsx       # Authentication wrapper
+│   ├── header.tsx           # Dashboard header
+│   ├── sidebar.tsx          # Dashboard sidebar
+│   └── kpi-card.tsx         # KPI display component
+└── public/
+    └── assets/              # Landing page assets
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Navigation
+
+- **Landing Page**: `/landing` - Marketing and information page
+- **Dashboard**: `/dashboard` - Main executive dashboard (requires authentication)
+- **Finance**: `/finance` - Financial reporting
+- **HR**: `/hr` - Human resources management
+- **Compliance**: `/compliance` - Compliance tracking
+- **Analytics**: `/analytics` - Predictive analytics
+
+## Authentication
+
+The application uses a simple client-side authentication system:
+- Login with any username/password combination
+- Authentication state is stored in localStorage
+- Dashboard routes are protected and redirect to landing if not authenticated
+- Logout clears authentication and returns to landing page
+
+## Technology Stack
+
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling and responsive design
+- **Lucide React** - Icons for dashboard
+- **React Icons** - Icons for landing page
+- **Recharts** - Data visualization for dashboard
+- **Radix UI** - Accessible UI components
+
+## Build and Deploy
+
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm run start
 ```
+
+The application is optimized for deployment on Vercel, Netlify, or any other Next.js-compatible hosting platform.

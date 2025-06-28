@@ -1,0 +1,446 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Hospital {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  departments              Department[]
+  employees               Employee[]
+  financialTransactions   FinancialTransaction[]
+  monthlyFinancialSummary MonthlyFinancialSummary[]
+  patients                Patient[]
+  patientVisits          PatientVisit[]
+  beds                   Bed[]
+  dailyBedOccupancy      DailyBedOccupancy[]
+  hrMonthlyStats         HrMonthlyStats[]
+  departmentStaffing     DepartmentStaffing[]
+  complianceTasks        ComplianceTask[]
+  forecastData           ForecastData[]
+  aiInsights             AiInsight[]
+  hospitalEquipment      HospitalEquipment[]
+
+  @@map("hospitals")
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  hospitalId  String   @map("hospital_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  hospital           Hospital             @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  employees          Employee[]
+  financialTransactions FinancialTransaction[]
+  patientVisits      PatientVisit[]
+  beds               Bed[]
+  dailyBedOccupancy  DailyBedOccupancy[]
+  departmentStaffing DepartmentStaffing[]
+  complianceTasks    ComplianceTask[]
+  hospitalEquipment  HospitalEquipment[]
+
+  @@map("departments")
+}
+
+model Employee {
+  id               String            @id @default(cuid())
+  hospitalId       String            @map("hospital_id")
+  departmentId     String?           @map("department_id")
+  employeeId       String            @unique @map("employee_id")
+  firstName        String            @map("first_name")
+  lastName         String            @map("last_name")
+  email            String?           @unique
+  phone            String?
+  position         String?
+  hireDate         DateTime?         @map("hire_date")
+  departureDate    DateTime?         @map("departure_date")
+  status           EmployeeStatus    @default(ACTIVE)
+  salary           Decimal?          @db.Decimal(12, 2)
+  performanceScore Decimal?          @map("performance_score") @db.Decimal(3, 1)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  hospital                    Hospital                @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department                  Department?             @relation(fields: [departmentId], references: [id])
+  createdTransactions         FinancialTransaction[]  @relation("TransactionCreator")
+  attendingPatientVisits      PatientVisit[]          @relation("AttendingPhysician")
+  assignedComplianceTasks     ComplianceTask[]        @relation("TaskAssignee")
+  completedComplianceTasks    ComplianceTask[]        @relation("TaskCompleter")
+  performanceEvaluations     EmployeePerformance[]   @relation("EmployeeEvaluations")
+  conductedEvaluations       EmployeePerformance[]   @relation("Evaluator")
+  employeeTraining           EmployeeTraining[]
+
+  @@map("employees")
+}
+
+model FinancialTransaction {
+  id              String                    @id @default(cuid())
+  hospitalId      String                    @map("hospital_id")
+  transactionDate DateTime                  @map("transaction_date")
+  description     String
+  category        TransactionCategory
+  amount          Decimal                   @db.Decimal(15, 2)
+  departmentId    String?                   @map("department_id")
+  createdBy       String?                   @map("created_by")
+  createdAt       DateTime                  @default(now()) @map("created_at")
+
+  // Relations
+  hospital   Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+  creator    Employee?   @relation("TransactionCreator", fields: [createdBy], references: [id])
+
+  @@map("financial_transactions")
+}
+
+model MonthlyFinancialSummary {
+  id             String   @id @default(cuid())
+  hospitalId     String   @map("hospital_id")
+  monthYear      DateTime @map("month_year")
+  totalRevenue   Decimal  @default(0) @map("total_revenue") @db.Decimal(15, 2)
+  totalCosts     Decimal  @default(0) @map("total_costs") @db.Decimal(15, 2)
+  netProfit      Decimal  @default(0) @map("net_profit") @db.Decimal(15, 2)
+  budgetAllocated Decimal? @map("budget_allocated") @db.Decimal(15, 2)
+  budgetUsed     Decimal? @map("budget_used") @db.Decimal(15, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@unique([hospitalId, monthYear])
+  @@map("monthly_financial_summary")
+}
+
+model Patient {
+  id                     String   @id @default(cuid())
+  hospitalId             String   @map("hospital_id")
+  patientId              String   @unique @map("patient_id")
+  firstName              String   @map("first_name")
+  lastName               String   @map("last_name")
+  dateOfBirth            DateTime? @map("date_of_birth")
+  gender                 Gender?
+  phone                  String?
+  email                  String?
+  address                String?
+  emergencyContactName   String?   @map("emergency_contact_name")
+  emergencyContactPhone  String?   @map("emergency_contact_phone")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  hospital      Hospital      @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patientVisits PatientVisit[]
+  beds          Bed[]
+
+  @@map("patients")
+}
+
+model PatientVisit {
+  id                  String           @id @default(cuid())
+  hospitalId          String           @map("hospital_id")
+  patientId           String           @map("patient_id")
+  visitType           VisitType        @map("visit_type")
+  admissionDate       DateTime         @map("admission_date")
+  dischargeDate       DateTime?        @map("discharge_date")
+  departmentId        String?          @map("department_id")
+  attendingPhysician  String?          @map("attending_physician")
+  diagnosis           String?
+  treatmentSummary    String?          @map("treatment_summary")
+  totalCost           Decimal?         @map("total_cost") @db.Decimal(10, 2)
+  insuranceCovered    Decimal?         @map("insurance_covered") @db.Decimal(10, 2)
+  patientPaid         Decimal?         @map("patient_paid") @db.Decimal(10, 2)
+  status              VisitStatus      @default(ADMITTED)
+  createdAt           DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  hospital           Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  patient            Patient     @relation(fields: [patientId], references: [id])
+  department         Department? @relation(fields: [departmentId], references: [id])
+  attendingDoctor    Employee?   @relation("AttendingPhysician", fields: [attendingPhysician], references: [id])
+
+  @@map("patient_visits")
+}
+
+model Bed {
+  id               String    @id @default(cuid())
+  hospitalId       String    @map("hospital_id")
+  departmentId     String?   @map("department_id")
+  bedNumber        String    @map("bed_number")
+  bedType          BedType?  @map("bed_type")
+  status           BedStatus @default(AVAILABLE)
+  currentPatientId String?   @map("current_patient_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  hospital       Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department     Department? @relation(fields: [departmentId], references: [id])
+  currentPatient Patient?    @relation(fields: [currentPatientId], references: [id])
+
+  @@unique([hospitalId, bedNumber])
+  @@map("beds")
+}
+
+model DailyBedOccupancy {
+  id             String     @id @default(cuid())
+  hospitalId     String     @map("hospital_id")
+  date           DateTime
+  totalBeds      Int        @map("total_beds")
+  occupiedBeds   Int        @map("occupied_beds")
+  occupancyRate  Decimal    @map("occupancy_rate") @db.Decimal(5, 2)
+  departmentId   String?    @map("department_id")
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  hospital   Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  @@unique([hospitalId, date, departmentId])
+  @@map("daily_bed_occupancy")
+}
+
+model HrMonthlyStats {
+  id                    String   @id @default(cuid())
+  hospitalId            String   @map("hospital_id")
+  monthYear             DateTime @map("month_year")
+  newHires              Int      @default(0) @map("new_hires")
+  departures            Int      @default(0)
+  totalStaff            Int      @map("total_staff")
+  turnoverRate          Decimal? @map("turnover_rate") @db.Decimal(5, 2)
+  avgSatisfactionScore  Decimal? @map("avg_satisfaction_score") @db.Decimal(3, 1)
+  avgTrainingHours      Decimal? @map("avg_training_hours") @db.Decimal(5, 1)
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  // Relations
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@unique([hospitalId, monthYear])
+  @@map("hr_monthly_stats")
+}
+
+model DepartmentStaffing {
+  id            String     @id @default(cuid())
+  hospitalId    String     @map("hospital_id")
+  departmentId  String     @map("department_id")
+  requiredStaff Int        @map("required_staff")
+  currentStaff  Int        @map("current_staff")
+  lastUpdated   DateTime   @default(now()) @map("last_updated")
+
+  // Relations
+  hospital   Hospital   @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@unique([hospitalId, departmentId])
+  @@map("department_staffing")
+}
+
+model EmployeePerformance {
+  id                     String   @id @default(cuid())
+  employeeId             String   @map("employee_id")
+  evaluationPeriod       DateTime @map("evaluation_period")
+  performanceScore       Decimal  @map("performance_score") @db.Decimal(5, 2)
+  achievementDescription String?  @map("achievement_description")
+  evaluatorId            String?  @map("evaluator_id")
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  // Relations
+  employee  Employee  @relation("EmployeeEvaluations", fields: [employeeId], references: [id])
+  evaluator Employee? @relation("Evaluator", fields: [evaluatorId], references: [id])
+
+  @@map("employee_performance")
+}
+
+model ComplianceTask {
+  id             String           @id @default(cuid())
+  hospitalId     String           @map("hospital_id")
+  taskName       String           @map("task_name")
+  description    String?
+  departmentId   String?          @map("department_id")
+  assigneeId     String?          @map("assignee_id")
+  dueDate        DateTime         @map("due_date")
+  status         ComplianceStatus @default(PENDING)
+  priority       Priority         @default(MEDIUM)
+  completionDate DateTime?        @map("completion_date")
+  completedBy    String?          @map("completed_by")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  hospital    Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department  Department? @relation(fields: [departmentId], references: [id])
+  assignee    Employee?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  completer   Employee?   @relation("TaskCompleter", fields: [completedBy], references: [id])
+
+  @@map("compliance_tasks")
+}
+
+model ForecastData {
+  id              String       @id @default(cuid())
+  hospitalId      String       @map("hospital_id")
+  forecastType    ForecastType @map("forecast_type")
+  periodDate      DateTime     @map("period_date")
+  historicalValue Decimal?     @map("historical_value") @db.Decimal(15, 2)
+  forecastValue   Decimal?     @map("forecast_value") @db.Decimal(15, 2)
+  confidenceLower Decimal?     @map("confidence_lower") @db.Decimal(15, 2)
+  confidenceUpper Decimal?     @map("confidence_upper") @db.Decimal(15, 2)
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@unique([hospitalId, forecastType, periodDate])
+  @@map("forecast_data")
+}
+
+model AiInsight {
+  id            String      @id @default(cuid())
+  hospitalId    String      @map("hospital_id")
+  insightType   InsightType @map("insight_type")
+  title         String
+  insightText   String      @map("insight_text")
+  generatedDate DateTime    @default(now()) @map("generated_date")
+  isActive      Boolean     @default(true) @map("is_active")
+
+  // Relations
+  hospital Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("ai_insights")
+}
+
+model HospitalEquipment {
+  id                  String           @id @default(cuid())
+  hospitalId          String           @map("hospital_id")
+  departmentId        String?          @map("department_id")
+  equipmentName       String           @map("equipment_name")
+  equipmentType       String?          @map("equipment_type")
+  serialNumber        String?          @map("serial_number")
+  purchaseDate        DateTime?        @map("purchase_date")
+  lastMaintenance     DateTime?        @map("last_maintenance")
+  nextMaintenanceDue  DateTime?        @map("next_maintenance_due")
+  status              EquipmentStatus  @default(OPERATIONAL)
+  createdAt           DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  hospital   Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  department Department? @relation(fields: [departmentId], references: [id])
+
+  @@map("hospital_equipment")
+}
+
+model EmployeeTraining {
+  id                   String       @id @default(cuid())
+  employeeId           String       @map("employee_id")
+  trainingName         String       @map("training_name")
+  trainingType         TrainingType @map("training_type")
+  trainingDate         DateTime     @map("training_date")
+  hoursCompleted       Decimal      @map("hours_completed") @db.Decimal(4, 1)
+  certificationExpires DateTime?    @map("certification_expires")
+  trainer              String?
+  createdAt            DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("employee_training")
+}
+
+// Enums
+enum EmployeeStatus {
+  ACTIVE    @map("active")
+  INACTIVE  @map("inactive")
+  TERMINATED @map("terminated")
+}
+
+enum TransactionCategory {
+  REVENUE     @map("Revenue")
+  CAPITAL     @map("Capital")
+  OPERATIONAL @map("Operational")
+}
+
+enum Gender {
+  M     @map("M")
+  F     @map("F")
+  OTHER @map("Other")
+}
+
+enum VisitType {
+  INPATIENT  @map("inpatient")
+  OUTPATIENT @map("outpatient")
+  EMERGENCY  @map("emergency")
+}
+
+enum VisitStatus {
+  ADMITTED    @map("admitted")
+  DISCHARGED  @map("discharged")
+  TRANSFERRED @map("transferred")
+}
+
+enum BedType {
+  ICU       @map("ICU")
+  GENERAL   @map("General")
+  PRIVATE   @map("Private")
+  EMERGENCY @map("Emergency")
+}
+
+enum BedStatus {
+  OCCUPIED    @map("occupied")
+  AVAILABLE   @map("available")
+  MAINTENANCE @map("maintenance")
+}
+
+enum ComplianceStatus {
+  PENDING     @map("pending")
+  IN_PROGRESS @map("in-progress")
+  DUE_SOON    @map("due-soon")
+  OVERDUE     @map("overdue")
+  COMPLETED   @map("completed")
+}
+
+enum Priority {
+  LOW    @map("low")
+  MEDIUM @map("medium")
+  HIGH   @map("high")
+}
+
+enum ForecastType {
+  PATIENT_INFLOW  @map("patient-inflow")
+  FINANCIAL       @map("financial")
+  BED_OCCUPANCY   @map("bed-occupancy")
+}
+
+enum InsightType {
+  PATIENT_INFLOW @map("patient-inflow")
+  FINANCIAL      @map("financial")
+  BED_OCCUPANCY  @map("bed-occupancy")
+  HR             @map("hr")
+  COMPLIANCE     @map("compliance")
+}
+
+enum EquipmentStatus {
+  OPERATIONAL @map("operational")
+  MAINTENANCE @map("maintenance")
+  RETIRED     @map("retired")
+}
+
+enum TrainingType {
+  HIPAA      @map("HIPAA")
+  SAFETY     @map("Safety")
+  TECHNICAL  @map("Technical")
+  LEADERSHIP @map("Leadership")
+  OTHER      @map("Other")
+}
