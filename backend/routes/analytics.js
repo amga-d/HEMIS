@@ -1,16 +1,16 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-const prisma = require('../services/prismaClient');
+const prisma = require("../services/prismaClient");
 
 /* GET forecast data */
-router.get('/forecast/:type', async (req, res) => {
+router.get("/forecast/:type", async (req, res) => {
   try {
     const { type } = req.params;
-    
+
     let forecastData = [];
-    
+
     switch (type) {
-      case 'patient-inflow':
+      case "patient-inflow":
         forecastData = [
           { month: "Jul", historical: 1500, forecast: null, confidence: null },
           { month: "Aug", historical: 1600, forecast: null, confidence: null },
@@ -26,7 +26,7 @@ router.get('/forecast/:type', async (req, res) => {
           { month: "Jun", historical: null, forecast: 1800, confidence: { lower: 1650, upper: 1950 } },
         ];
         break;
-      case 'financial':
+      case "financial":
         forecastData = [
           { month: "Jul", historical: 2400000, forecast: null, confidence: null },
           { month: "Aug", historical: 2600000, forecast: null, confidence: null },
@@ -42,7 +42,7 @@ router.get('/forecast/:type', async (req, res) => {
           { month: "Jun", historical: null, forecast: 2800000, confidence: { lower: 2550000, upper: 3050000 } },
         ];
         break;
-      case 'bed-occupancy':
+      case "bed-occupancy":
         forecastData = [
           { month: "Jul", historical: 85, forecast: null, confidence: null },
           { month: "Aug", historical: 88, forecast: null, confidence: null },
@@ -59,9 +59,9 @@ router.get('/forecast/:type', async (req, res) => {
         ];
         break;
       default:
-        return res.status(400).json({ error: 'Invalid forecast type' });
+        return res.status(400).json({ error: "Invalid forecast type" });
     }
-    
+
     res.json(forecastData);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -69,47 +69,47 @@ router.get('/forecast/:type', async (req, res) => {
 });
 
 /* GET AI insights */
-router.get('/insights/:type', async (req, res) => {
+router.get("/insights/:type", async (req, res) => {
   try {
     const { type } = req.params;
-    
+
     let insights = [];
-    
+
     switch (type) {
-      case 'optimization':
+      case "optimization":
         insights = [
           {
             id: 1,
             title: "Staffing Optimization",
             description: "Consider redistributing nursing staff to handle expected 15% increase in patient volume",
             impact: "High",
-            category: "Operations"
+            category: "Operations",
           },
           {
             id: 2,
             title: "Cost Reduction",
             description: "Pharmaceutical procurement can be optimized to save approximately $50K annually",
             impact: "Medium",
-            category: "Finance"
-          }
+            category: "Finance",
+          },
         ];
         break;
-      case 'prediction':
+      case "prediction":
         insights = [
           {
             id: 1,
             title: "Revenue Forecast",
             description: "Expected 12% revenue growth in Q2 based on historical trends and market analysis",
             impact: "High",
-            category: "Finance"
+            category: "Finance",
           },
           {
             id: 2,
             title: "Capacity Planning",
             description: "ICU capacity may reach 95% utilization in peak season, consider expansion",
             impact: "High",
-            category: "Operations"
-          }
+            category: "Operations",
+          },
         ];
         break;
       default:
@@ -119,11 +119,11 @@ router.get('/insights/:type', async (req, res) => {
             title: "General Insight",
             description: "System performance is within expected parameters",
             impact: "Low",
-            category: "General"
-          }
+            category: "General",
+          },
         ];
     }
-    
+
     res.json(insights);
   } catch (error) {
     res.status(500).json({ error: error.message });
