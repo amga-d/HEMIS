@@ -1,0 +1,41 @@
+# Node modules
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+bower_components
+jspm_packages
+
+# Build output
+dist
+build
+
+# Environment files
+.env
+.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Test output
+coverage
+*.lcov
+
+# Misc
+*.swp
+*.swo
+*.bak
+*.tmp
