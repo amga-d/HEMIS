@@ -5,6 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var rateLimit = require('express-rate-limit');
+var compression = require('compression');
+var helmet = require('helmet');
+require('dotenv').config(); // Load environment variables from .env file
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -18,24 +21,31 @@ var app = express();
 
 // Rate limiter configuration
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: process.env.RATE_LIMIT_WINDOW || 15 * 60 * 1000,
+  max: process.env.RATE_LIMIT_MAX ||100,
   message: 'Too many requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 })
 
+const corsOptions = {
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3001, http://localhost:3000, http://localhost:3002"],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+};
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(helmet()); 
+app.use(compression());
+app.use(express.json({limit: '10mb'}));
+app.use(express.urlencoded({ extended: false ,limit: '10mb'}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(limiter);
 
 
