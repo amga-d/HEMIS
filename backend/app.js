@@ -29,7 +29,7 @@ const limiter = rateLimit({
 })
 
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3001, http://localhost:3000, http://localhost:3002"],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3001", "http://localhost:3000", "http://localhost:3002"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 };
