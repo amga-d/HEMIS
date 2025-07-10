@@ -2,6 +2,32 @@ var express = require('express');
 var router = express.Router();
 const prisma = require('../services/prismaClient');
 
+/* GET employees list */
+router.get('/employees', async (req, res) => {
+  try {
+    const { hospitalId } = req.query;
+    
+    const employees = await prisma.employee.findMany({
+      where: hospitalId ? { hospitalId } : {},
+      include: {
+        department: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        firstName: 'asc'
+      }
+    });
+
+    res.json(employees);
+  } catch (error) {
+    console.error('Error fetching employees:', error);
+    res.status(500).json({ error: 'Failed to fetch employees' });
+  }
+});
+
 /* GET staffing levels */
 router.get('/staffing', async (req, res) => {
   try {
@@ -170,6 +196,25 @@ router.get('/kpis', async (req, res) => {
       }
     });
 
+    // Calculate average training hours from employee training records
+    const currentYear = new Date().getFullYear();
+    const yearStart = new Date(currentYear, 0, 1);
+    
+    const trainingStats = await prisma.employeeTraining.aggregate({
+      where: {
+        employee: {
+          hospitalId,
+          status: 'ACTIVE'
+        },
+        trainingDate: {
+          gte: yearStart
+        }
+      },
+      _avg: {
+        hoursCompleted: true
+      }
+    });
+
     const kpis = {
       totalStaff: {
         value: totalStaff,
@@ -184,7 +229,7 @@ router.get('/kpis', async (req, res) => {
         trend: '0.3'
       },
       avgTrainingHours: {
-        value: '42',
+        value: trainingStats._avg.hoursCompleted ? Math.round(trainingStats._avg.hoursCompleted).toString() : '42',
         trend: '8'
       }
     };

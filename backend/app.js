@@ -9,8 +9,6 @@ var compression = require('compression');
 var helmet = require('helmet');
 require('dotenv').config(); // Load environment variables from .env file
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var financeRouter = require('./routes/finance');
 var hrRouter = require('./routes/hr');
 var analyticsRouter = require('./routes/analytics');
@@ -28,10 +26,32 @@ const limiter = rateLimit({
   legacyHeaders: false,
 })
 
+// CORS configuration
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ["http://localhost:3001", "http://localhost:3000", "http://localhost:3002"],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:3002',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:3002',
+      // Add your production domains here
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins in development
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
 // view engine setup
@@ -48,9 +68,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors(corsOptions));
 app.use(limiter);
 
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/api/finance', financeRouter);
 app.use('/api/hr', hrRouter);
 app.use('/api/analytics', analyticsRouter);
@@ -67,6 +88,7 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.title = 'Error';
 
   // render the error page
   res.status(err.status || 500);

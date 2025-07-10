@@ -6,7 +6,34 @@ const prisma = require("../services/prismaClient");
 router.get("/forecast/:type", async (req, res) => {
   try {
     const { type } = req.params;
+    const { hospitalId } = req.query;
 
+    // Try to get real forecast data from database first
+    const dbForecastData = await prisma.forecastData.findMany({
+      where: {
+        hospitalId,
+        forecastType: type.toUpperCase().replace('-', '_')
+      },
+      orderBy: {
+        periodDate: 'asc'
+      },
+      take: 12
+    });
+
+    if (dbForecastData.length > 0) {
+      const formattedData = dbForecastData.map(item => ({
+        month: item.periodDate.toLocaleDateString('en-US', { month: 'short' }),
+        historical: item.historicalValue ? parseFloat(item.historicalValue) : null,
+        forecast: item.forecastValue ? parseFloat(item.forecastValue) : null,
+        confidence: item.confidenceLower && item.confidenceUpper ? {
+          lower: parseFloat(item.confidenceLower),
+          upper: parseFloat(item.confidenceUpper)
+        } : null
+      }));
+      return res.json(formattedData);
+    }
+
+    // Fallback to simulated data if no database data
     let forecastData = [];
 
     switch (type) {
