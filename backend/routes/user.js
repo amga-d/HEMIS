@@ -47,6 +47,8 @@ router.post('/login', async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       maxAge: 1000 * 60 * 60, // 1 hour
       path: '/',
+      // For cross-domain cookies in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       // Don't set domain for localhost to allow cross-port access
     });
 
@@ -82,6 +84,7 @@ router.post('/logout', (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     path: '/',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   res.status(200).json({ message: 'Logout successful' });

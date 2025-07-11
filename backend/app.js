@@ -56,6 +56,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  // Allow cookies to be sent with cross-domain requests
+  exposedHeaders: ['set-cookie'],
 };
 
 // view engine setup
