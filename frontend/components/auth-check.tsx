@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { checkAuthStatus } from '@/lib/auth'
 
 export default function AuthCheck({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -16,14 +17,20 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted) return
 
-    const checkAuth = () => {
-      const isLoggedIn = localStorage.getItem('isLoggedIn')
-      if (!isLoggedIn) {
+    const checkAuth = async () => {
+      try {
+        const isLoggedIn = await checkAuthStatus()
+        if (!isLoggedIn) {
+          router.push('/landing')
+        } else {
+          setIsAuthenticated(true)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
         router.push('/landing')
-      } else {
-        setIsAuthenticated(true)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     checkAuth()

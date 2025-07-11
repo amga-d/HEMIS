@@ -9,9 +9,15 @@ export function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/finance') ||
       request.nextUrl.pathname.startsWith('/hr')) {
     
-    // In a real app, you'd check for a proper authentication token
-    // For now, we'll skip the check since we can't access localStorage from middleware
-    // The authentication check will be handled client-side
+    // Check for JWT token in cookies
+    const token = request.cookies.get('jwt')?.value
+    
+    if (!token) {
+      // No token found, redirect to landing page
+      return NextResponse.redirect(new URL('/landing', request.url))
+    }
+    
+    // Token exists, allow access (detailed validation happens client-side)
     return NextResponse.next()
   }
 

@@ -50,7 +50,10 @@ export default function Analytics() {
         const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || "default";
 
         // Fetch forecast data and insights in parallel
-        const [forecastRes, insightsRes] = await Promise.all([fetch(`${baseUrl}/api/analytics/forecast/${selectedModel}?hospitalId=${hospitalId}`), fetch(`${baseUrl}/api/analytics/insights/optimization?hospitalId=${hospitalId}`)]);
+        const [forecastRes, insightsRes] = await Promise.all([
+          fetch(`${baseUrl}/api/analytics/forecast/${selectedModel}?hospitalId=${hospitalId}`, { credentials: 'include' }), 
+          fetch(`${baseUrl}/api/analytics/insights/optimization?hospitalId=${hospitalId}`, { credentials: 'include' })
+        ]);
 
         if (!forecastRes.ok || !insightsRes.ok) {
           throw new Error("Failed to fetch analytics data");

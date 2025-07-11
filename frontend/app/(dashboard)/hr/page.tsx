@@ -59,10 +59,10 @@ export default function HRReport() {
 
         // Fetch all HR data in parallel
         const [staffingRes, trendsRes, performersRes, kpisRes] = await Promise.all([
-          fetch(`${baseUrl}/api/hr/staffing?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/hr/hiring-trends?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/hr/top-performers?hospitalId=${hospitalId}&limit=4`),
-          fetch(`${baseUrl}/api/hr/kpis?hospitalId=${hospitalId}`)
+          fetch(`${baseUrl}/api/hr/staffing?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/hr/hiring-trends?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/hr/top-performers?hospitalId=${hospitalId}&limit=4`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/hr/kpis?hospitalId=${hospitalId}`, { credentials: 'include' })
         ]);
 
         if (!staffingRes.ok || !trendsRes.ok || !performersRes.ok || !kpisRes.ok) {

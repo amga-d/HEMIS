@@ -16,14 +16,32 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = () => {
-    // Simple authentication check - in a real app, you'd validate against a backend
-    if (username && password) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("isLoggedIn", "true");
+  const handleLogin = async () => {
+    if (!username || !password) return
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+      const res = await fetch(`${baseUrl}/api/user/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          'Content-Type': "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      })
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert(err.error || "Login failed");
+        return;
       }
+
+      // Login successful - redirect to dashboard
       router.push("/dashboard");
       onClose();
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred during login.");
     }
   };
 

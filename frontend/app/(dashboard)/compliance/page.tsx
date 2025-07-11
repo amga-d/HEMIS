@@ -31,7 +31,7 @@ export default function ComplianceManagement() {
         const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
         const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || 'default';
 
-        const response = await fetch(`${baseUrl}/api/compliance/tasks?hospitalId=${hospitalId}`);
+        const response = await fetch(`${baseUrl}/api/compliance/tasks?hospitalId=${hospitalId}`, { credentials: 'include' });
         if (!response.ok) {
           throw new Error('Failed to fetch compliance data');
         }

@@ -62,11 +62,11 @@ export default function Dashboard() {
 
         // Fetch all dashboard data in parallel
         const [kpisRes, patientRes, budgetRes, complianceRes, insightsRes] = await Promise.all([
-          fetch(`${baseUrl}/api/dashboard/kpis?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/dashboard/patient-inflow?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/dashboard/budget?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/compliance/alerts?hospitalId=${hospitalId}`),
-          fetch(`${baseUrl}/api/dashboard/ai-insights?hospitalId=${hospitalId}`)
+          fetch(`${baseUrl}/api/dashboard/kpis?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/dashboard/patient-inflow?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/dashboard/budget?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/compliance/alerts?hospitalId=${hospitalId}`, { credentials: 'include' }),
+          fetch(`${baseUrl}/api/dashboard/ai-insights?hospitalId=${hospitalId}`, { credentials: 'include' })
         ]);
 
         if (!kpisRes.ok || !patientRes.ok || !budgetRes.ok || !complianceRes.ok || !insightsRes.ok) {

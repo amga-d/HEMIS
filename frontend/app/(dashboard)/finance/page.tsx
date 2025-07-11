@@ -54,7 +54,7 @@ export default function FinanceReport() {
         const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || 'default';
         
         // Fetch financial summary for chart
-        const summaryRes = await fetch(`${baseUrl}/api/finance/summary?hospitalId=${hospitalId}`);
+        const summaryRes = await fetch(`${baseUrl}/api/finance/summary?hospitalId=${hospitalId}`, { credentials: 'include' });
         if (!summaryRes.ok) throw new Error('Failed to fetch summary data');
         const summaryData = await summaryRes.json();
         
@@ -68,13 +68,13 @@ export default function FinanceReport() {
         setRevenueData(transformedData);
         
         // Fetch transactions
-        const transRes = await fetch(`${baseUrl}/api/finance/transactions?hospitalId=${hospitalId}&limit=10`);
+        const transRes = await fetch(`${baseUrl}/api/finance/transactions?hospitalId=${hospitalId}&limit=10`, { credentials: 'include' });
         if (!transRes.ok) throw new Error('Failed to fetch transactions');
         const transData: Transaction[] = await transRes.json();
         setTransactions(transData);
         
         // Fetch KPIs
-        const kpiRes = await fetch(`${baseUrl}/api/finance/kpis?hospitalId=${hospitalId}`);
+        const kpiRes = await fetch(`${baseUrl}/api/finance/kpis?hospitalId=${hospitalId}`, { credentials: 'include' });
         if (!kpiRes.ok) throw new Error('Failed to fetch KPIs');
         const kpiData: KPIData = await kpiRes.json();
         setKpis(kpiData);
