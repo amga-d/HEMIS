@@ -45,7 +45,6 @@ router.post('/login', async (req, res) => {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 1000 * 60 * 60, // 1 hour
       path: '/',
       // Don't set domain for localhost to allow cross-port access
@@ -82,7 +81,6 @@ router.post('/logout', (req, res) => {
   res.clearCookie('jwt', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     path: '/',
   });
 
