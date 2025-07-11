@@ -8,7 +8,6 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "HEMIS - Hospital Executive Management Information System",
   description: "AI-Powered Hospital Management Dashboard",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
