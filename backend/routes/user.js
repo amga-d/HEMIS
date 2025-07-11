@@ -45,8 +45,10 @@ router.post('/login', async (req, res) => {
     res.cookie('jwt', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
       maxAge: 1000 * 60 * 60, // 1 hour
+      path: '/',
+      // Don't set domain for localhost to allow cross-port access
     });
 
     return res.status(200).json({
@@ -62,7 +64,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', async (req, res) => {
   try {
     const token = req.cookies.jwt;
-    
+
     if (!token) {
       return res.status(401).json({ error: 'No authentication token' });
     }
@@ -80,9 +82,10 @@ router.post('/logout', (req, res) => {
   res.clearCookie('jwt', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    path: '/',
   });
-  
+
   res.status(200).json({ message: 'Logout successful' });
 });
 
