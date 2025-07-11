@@ -395,9 +395,67 @@ async function main() {
     );
   }
 
-  // SKIP: Patient visits seeding (for faster execution)
-  console.log('⏭️ Skipping patient visits seeding for faster execution...');
-  const patientVisits = []; // Empty array to maintain script compatibility
+  // Create patient visits for each month
+  console.log('🏥 Creating patient visits...');
+  const patientVisits = [];
+
+  for (let month = 0; month < 7; month++) {
+    const monthStart = new Date(2025, month, 1);
+    const monthEnd = new Date(2025, month + 1, 0);
+
+    // Generate 120-200 visits per month
+    const visitsThisMonth = 120 + Math.floor(Math.random() * 80);
+
+    for (let i = 0; i < visitsThisMonth; i++) {
+      const visitDate = randomDate(monthStart, monthEnd);
+      const patientIndex = Math.floor(Math.random() * patients.length);
+      const departmentIndex = Math.floor(Math.random() * 5); // Medical departments only
+      const visitType =
+        Math.random() < 0.3
+          ? 'INPATIENT'
+          : Math.random() < 0.7
+          ? 'OUTPATIENT'
+          : 'EMERGENCY';
+
+      const sessionDuration =
+        visitType === 'INPATIENT'
+          ? Math.floor(Math.random() * 4320) + 1440 // 1-4 days for inpatient
+          : Math.floor(Math.random() * 180) + 30; // 30-210 minutes for outpatient/emergency
+
+      const dischargeDate =
+        visitType === 'INPATIENT'
+          ? new Date(visitDate.getTime() + sessionDuration * 60000)
+          : visitDate;
+
+      const visit = await prisma.patientVisit.create({
+        data: {
+          hospitalId: hospital.id,
+          patientId: patients[patientIndex].id,
+          visitType: visitType,
+          admissionDate: visitDate,
+          dischargeDate: visitType === 'OUTPATIENT' ? visitDate : dischargeDate,
+          departmentId: departments[departmentIndex].id,
+          attendingPhysician: employees[departmentIndex].id,
+          diagnosis: `Diagnosis for visit ${i + 1}`,
+          treatmentSummary: `Treatment provided for patient visit ${i + 1}`,
+          totalCost: Math.floor(Math.random() * 15000) + 500,
+          insuranceCovered: Math.floor(Math.random() * 12000) + 400,
+          patientPaid: Math.floor(Math.random() * 3000) + 100,
+          status:
+            visitType === 'INPATIENT' && Math.random() < 0.8
+              ? 'DISCHARGED'
+              : 'ADMITTED',
+          sessionDuration: sessionDuration,
+          isReadmission: Math.random() < 0.12, // 12% readmission rate
+          waitTime: Math.floor(Math.random() * 120) + 15, // 15-135 minutes wait
+        },
+      });
+
+      patientVisits.push(visit);
+    }
+  }
+
+  console.log('✅ Created', patientVisits.length, 'patient visits');
 
   // Create monthly financial summaries for Jan 2025 - Jul 2025
   console.log('💰 Creating financial data...');
