@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
-import { Brain, BarChart3 } from "lucide-react";
+import { Brain, BarChart3, AlertCircle } from "lucide-react";
 import { Line, XAxis, YAxis, Area, AreaChart } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface ForecastModel {
   id: string;
@@ -70,8 +72,41 @@ export default function Analytics() {
     fetchData();
   }, [selectedModel]);
 
-  if (isLoading) return <div className="p-8">Loading analytics...</div>;
-  if (error) return <div className="p-8">Error: {error}</div>;
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="glass-panel flex flex-col items-center justify-center py-16">
+          <Spinner size="lg" className="mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Loading Analytics</h2>
+          <p className="text-white/70 text-center">Please wait while we fetch your analytics data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="glass-panel max-w-md w-full">
+          <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle className="text-red-300">Error Loading Analytics</AlertTitle>
+            <AlertDescription className="text-red-200">
+              {error}
+            </AlertDescription>
+          </Alert>
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const formatValue = (value: number | null): string => {
     if (value === null) return "";
