@@ -12,15 +12,21 @@ const navigation = [
   { name: "Predictive Analytics", href: "/analytics", icon: TrendingUp },
 ]
 
+import { logout } from '@/lib/auth'
+
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
 
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("isLoggedIn")
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push("/landing")
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect to landing page even if logout fails
+      router.push("/landing")
     }
-    router.push("/landing")
   }
 
   return (

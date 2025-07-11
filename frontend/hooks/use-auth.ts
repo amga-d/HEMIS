@@ -15,8 +15,11 @@ export function useAuth() {
         setIsAuthenticated(isLoggedIn)
         
         if (isLoggedIn) {
+          // getCurrentUser now uses the cached data from checkAuthStatus
           const currentUser = await getCurrentUser()
           setUser(currentUser)
+        } else {
+          setUser(null)
         }
       } catch (error) {
         console.error('Auth check error:', error)
@@ -46,12 +49,16 @@ export function useAuth() {
     isLoading,
     logout: handleLogout,
     refreshAuth: async () => {
+      setIsLoading(true)
       const isLoggedIn = await checkAuthStatus()
       setIsAuthenticated(isLoggedIn)
       if (isLoggedIn) {
         const currentUser = await getCurrentUser()
         setUser(currentUser)
+      } else {
+        setUser(null)
       }
+      setIsLoading(false)
     }
   }
 }

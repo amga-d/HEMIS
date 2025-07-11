@@ -8,22 +8,16 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!isMounted) return
-
     const checkAuth = async () => {
       try {
         const isLoggedIn = await checkAuthStatus()
-        if (!isLoggedIn) {
-          router.push('/landing')
-        } else {
+        
+        if (isLoggedIn) {
           setIsAuthenticated(true)
+        } else {
+          router.push('/landing')
         }
       } catch (error) {
         console.error('Auth check error:', error)
@@ -33,13 +27,13 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
       }
     }
 
-    checkAuth()
-  }, [router, isMounted])
+    // Add a small delay to ensure cookie is available after login redirect
+    const timeoutId = setTimeout(() => {
+      checkAuth()
+    }, 100)
 
-  // Don't render anything until the component is mounted on the client
-  if (!isMounted) {
-    return null
-  }
+    return () => clearTimeout(timeoutId)
+  }, [router])
 
   if (isLoading) {
     return (
@@ -50,7 +44,11 @@ export default function AuthCheck({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return null
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-teal-400 flex items-center justify-center">
+        <div className="text-white text-xl">Redirecting...</div>
+      </div>
+    )
   }
 
   return <>{children}</>

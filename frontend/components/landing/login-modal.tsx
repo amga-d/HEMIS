@@ -11,6 +11,8 @@ interface Props {
   onClose: () => void;
 }
 
+import { clearAuthCache } from '@/lib/auth'
+
 const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +38,11 @@ const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
         return;
       }
 
-      // Login successful - redirect to dashboard
+      // Clear auth cache to ensure fresh authentication check
+      clearAuthCache();
+      
+      // Login successful - close modal and redirect
+      onClose();
       router.push("/dashboard");
       onClose();
     } catch (error) {

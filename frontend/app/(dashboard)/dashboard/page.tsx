@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { Header } from "@/components/header"
 import { KPICard } from "@/components/kpi-card"
-import { useAuthRedirect } from "@/hooks/use-auth-redirect"
 import { Users, DollarSign, Clock, RotateCcw, TrendingUp, AlertTriangle, Brain, AlertCircle } from "lucide-react"
 import { Line, LineChart, Pie, PieChart, Cell, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
@@ -38,8 +37,6 @@ interface DashboardKPIs {
 }
 
 export default function Dashboard() {
-  useAuthRedirect()
-
   const [patientInflowData, setPatientInflowData] = useState<PatientInflowData[]>([]);
   const [budgetData, setBudgetData] = useState<BudgetData[]>([]);
   const [complianceAlerts, setComplianceAlerts] = useState<ComplianceAlert[]>([]);
