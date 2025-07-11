@@ -58,6 +58,32 @@ router.post('/login', async (req, res) => {
   }
 });
 
-module.exports = router;
+/* GET current user */
+router.get('/me', async (req, res) => {
+  try {
+    const token = req.cookies.jwt;
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No authentication token' });
+    }
 
-// Remove password from response
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Get current user error:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+/* POST logout */
+router.post('/logout', (req, res) => {
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
+  
+  res.status(200).json({ message: 'Logout successful' });
+});
+
+module.exports = router;
