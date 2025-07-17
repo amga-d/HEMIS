@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { BarChart3, DollarSign, Users, Shield, TrendingUp, Settings, LogOut, Activity } from "lucide-react"
+import { BarChart3, DollarSign, Users, Shield, TrendingUp, LogOut, Activity } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
@@ -58,13 +58,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="space-y-2 pt-4 border-t border-white/20">
-        <Link
-          href="/settings"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
-        >
-          <Settings className="h-5 w-5" />
-          <span className="font-medium">Settings</span>
-        </Link>
+  
         <button 
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200 w-full"

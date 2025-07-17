@@ -174,9 +174,7 @@ export default function ComplianceManagement() {
               </span>
             )}
           </h3>
-          <Button className="glass-card border-white/20 text-white hover:bg-white/20">
-            Add New Task
-          </Button>
+
         </div>
 
         <div className="space-y-4">
