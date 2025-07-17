@@ -55,6 +55,7 @@ export default function Dashboard() {
   });
   const [complianceAlerts, setComplianceAlerts] = useState<ComplianceAlert[]>([]);
   const [aiInsights, setAiInsights] = useState<string[]>([]);
+  const [expandedInsights, setExpandedInsights] = useState<Set<number>>(new Set());
   const [kpis, setKpis] = useState<DashboardKPIs>({
     totalPatients: { value: 0, trend: "0" },
     revenue: { value: 0, trend: "0" },
@@ -63,6 +64,30 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleInsightExpansion = (index: number) => {
+    setExpandedInsights((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const truncateText = (text: string, maxLines: number = 2) => {
+    const words = text.split(" ");
+    const wordsPerLine = 12; // Approximate words per line
+    const maxWords = maxLines * wordsPerLine;
+
+    if (words.length <= maxWords) {
+      return text;
+    }
+
+    return words.slice(0, maxWords).join(" ") + "...";
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -248,12 +273,25 @@ export default function Dashboard() {
             AI Assistant Insights
           </h3>
           <div className="space-y-4">
-            {aiInsights.map((insight, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 rounded-xl bg-white/10">
-                <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></div>
-                <p className="text-white/90 text-sm leading-relaxed">{insight}</p>
-              </div>
-            ))}
+            {aiInsights.map((insight, index) => {
+              const isExpanded = expandedInsights.has(index);
+              const displayText = isExpanded ? insight : truncateText(insight);
+              const shouldShowReadMore = insight.split(" ").length > 24; // Show read more if more than ~2 lines
+
+              return (
+                <div key={index} className="flex items-start gap-3 p-4 rounded-xl bg-white/10">
+                  <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></div>
+                  <div className="flex-1">
+                    <p className="text-white/90 text-sm leading-relaxed">{displayText}</p>
+                    {shouldShowReadMore && (
+                      <button onClick={() => toggleInsightExpansion(index)} className="mt-2 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors">
+                        {isExpanded ? "Show Less" : "Read More"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

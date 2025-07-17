@@ -156,7 +156,19 @@ export default function Analytics() {
           <AreaChart data={forecastData}>
             <XAxis dataKey="month" stroke="#ffffff" />
             <YAxis stroke="#ffffff" />
-            <ChartTooltip content={<ChartTooltipContent />} formatter={(value: any, name: string) => [formatValue(value), name]} />
+            <ChartTooltip 
+              content={<ChartTooltipContent />} 
+              labelStyle={{ color: 'white' }}
+              contentStyle={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                backdropFilter: 'blur(12px)',
+                color: 'white'
+              }}
+              itemStyle={{ color: 'white' }}
+              formatter={(value: any, name: string) => [formatValue(value), name]} 
+            />
 
             {/* Confidence interval area */}
             <Area dataKey="confidence.upper" stackId="1" stroke="none" fill="#10B981" fillOpacity={0.2} />

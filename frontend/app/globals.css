@@ -51,22 +51,34 @@
   }
 
   .recharts-default-tooltip {
-    background: rgba(0, 0, 0, 0.9) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 8px !important;
-    backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(12px) !important;
     color: white !important;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   }
 
   .recharts-tooltip-content {
-    background: rgba(0, 0, 0, 0.9) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     color: white !important;
   }
 
   .recharts-tooltip-item,
   .recharts-tooltip-label {
+    color: white !important;
+  }
+
+  .recharts-tooltip-item-name,
+  .recharts-tooltip-item-value {
+    color: white !important;
+  }
+
+  /* Force all tooltip text to be white */
+  .recharts-tooltip-wrapper *,
+  .recharts-default-tooltip *,
+  .recharts-tooltip-content * {
     color: white !important;
   }
 }

@@ -47,7 +47,7 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={ref}
         className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:!fill-white/50 [&_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-xAxis_line]:!stroke-white/50 [&_.recharts-yAxis_line]:!stroke-white/50 [&_.recharts-xAxis_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-yAxis_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none [&_.recharts-tooltip-wrapper]:!bg-transparent [&_.recharts-default-tooltip]:!bg-black/90 [&_.recharts-default-tooltip]:!border-white/20 [&_.recharts-default-tooltip]:!backdrop-blur-sm [&_.recharts-default-tooltip]:!text-white [&_.recharts-default-tooltip]:!shadow-xl [&_.recharts-tooltip-content]:!bg-black/90 [&_.recharts-tooltip-content]:!border-white/20 [&_.recharts-tooltip-content]:!text-white [&_.recharts-tooltip-item]:!text-white [&_.recharts-tooltip-label]:!text-white",
+          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:!fill-white/50 [&_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-xAxis_line]:!stroke-white/50 [&_.recharts-yAxis_line]:!stroke-white/50 [&_.recharts-xAxis_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-yAxis_.recharts-cartesian-axis-line]:!stroke-white/50 [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none [&_.recharts-tooltip-wrapper]:!bg-transparent [&_.recharts-default-tooltip]:!bg-white/10 [&_.recharts-default-tooltip]:!border-white/20 [&_.recharts-default-tooltip]:!backdrop-blur-md [&_.recharts-default-tooltip]:!text-white [&_.recharts-default-tooltip]:!shadow-xl [&_.recharts-tooltip-content]:!bg-white/10 [&_.recharts-tooltip-content]:!border-white/20 [&_.recharts-tooltip-content]:!text-white [&_.recharts-tooltip-item]:!text-white [&_.recharts-tooltip-label]:!text-white [&_.recharts-tooltip-item-name]:!text-white [&_.recharts-tooltip-item-value]:!text-white",
           className
         )}
         {...props}
@@ -132,7 +132,7 @@ const ChartTooltipContent = React.forwardRef<
   const nestLabel = payload.length === 1 && indicator !== "dot";
 
   return (
-    <div ref={ref} className={cn("grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-white/20 bg-black/90 backdrop-blur-sm px-2.5 py-1.5 text-xs shadow-xl", className)}>
+    <div ref={ref} className={cn("grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-white/20 bg-white/10 backdrop-blur-md px-2.5 py-1.5 text-xs shadow-xl [&_*]:!text-white", className)}>
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
         {payload.map((item, index) => {
@@ -143,7 +143,10 @@ const ChartTooltipContent = React.forwardRef<
           return (
             <div key={item.dataKey} className={cn("flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-white/70", indicator === "dot" && "items-center")}>
               {formatter && item?.value !== undefined && item.name ? (
-                formatter(item.value, item.name, item, index, item.payload)
+                <div className="flex w-full justify-between items-center text-white">
+                  <span className="text-white">{item.name}</span>
+                  <span className="font-mono font-medium tabular-nums text-white">{formatter(item.value, item.name, item, index, item.payload)}</span>
+                </div>
               ) : (
                 <>
                   {itemConfig?.icon ? (
@@ -169,7 +172,7 @@ const ChartTooltipContent = React.forwardRef<
                   <div className={cn("flex flex-1 justify-between leading-none", nestLabel ? "items-end" : "items-center")}>
                     <div className="grid gap-1.5">
                       {nestLabel ? tooltipLabel : null}
-                      <span className="text-white/70">{itemConfig?.label || item.name}</span>
+                      <span className="text-white">{itemConfig?.label || item.name}</span>
                     </div>
                     {item.value && <span className="font-mono font-medium tabular-nums text-white">{item.value.toLocaleString()}</span>}
                   </div>
