@@ -9,6 +9,9 @@ var compression = require('compression');
 var helmet = require('helmet');
 require('dotenv').config(); // Load environment variables from .env file
 
+// Initialize AI Insight Scheduler
+const insightScheduler = require('./services/insightScheduler');
+
 // Routers
 var userRouter = require('./routes/user');
 var financeRouter = require('./routes/finance');
@@ -100,5 +103,16 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+// Initialize AI Insight Scheduler
+if (process.env.NODE_ENV === 'production' || process.env.ENABLE_AI_SCHEDULER === 'true') {
+  console.log('Initializing AI Insight Scheduler...');
+  try {
+    insightScheduler.start();
+    console.log('AI Insight Scheduler started successfully');
+  } catch (error) {
+    console.error('Error starting AI Insight Scheduler:', error);
+  }
+}
 
 module.exports = app;
