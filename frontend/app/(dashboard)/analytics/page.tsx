@@ -38,8 +38,33 @@ export default function Analytics() {
   const [selectedModel, setSelectedModel] = useState("patient-inflow");
   const [forecastData, setForecastData] = useState<ForecastData[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
+  const [expandedInsights, setExpandedInsights] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleInsightExpansion = (index: number) => {
+    setExpandedInsights((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
+  const truncateText = (text: string, maxLines: number = 2) => {
+    const words = text.split(" ");
+    const wordsPerLine = 12; // Approximate words per line
+    const maxWords = maxLines * wordsPerLine;
+
+    if (words.length <= maxWords) {
+      return text;
+    }
+
+    return words.slice(0, maxWords).join(" ") + "...";
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,18 +181,18 @@ export default function Analytics() {
           <AreaChart data={forecastData}>
             <XAxis dataKey="month" stroke="#ffffff" />
             <YAxis stroke="#ffffff" />
-            <ChartTooltip 
-              content={<ChartTooltipContent />} 
-              labelStyle={{ color: 'white' }}
-              contentStyle={{ 
-                backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
-                backdropFilter: 'blur(12px)',
-                color: 'white'
+            <ChartTooltip
+              content={<ChartTooltipContent />}
+              labelStyle={{ color: "white" }}
+              contentStyle={{
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                borderRadius: "8px",
+                backdropFilter: "blur(12px)",
+                color: "white",
               }}
-              itemStyle={{ color: 'white' }}
-              formatter={(value: any, name: string) => [formatValue(value), name]} 
+              itemStyle={{ color: "white" }}
+              formatter={(value: any, name: string) => [formatValue(value), name]}
             />
 
             {/* Confidence interval area */}
@@ -188,22 +213,33 @@ export default function Analytics() {
           AI-Powered Insights
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {insights.map((insight) => (
-            <div key={insight.id} className="bg-white/5 rounded-lg p-6 border border-white/10">
-              <div className="flex items-start justify-between mb-4">
-                <h4 className="text-lg font-semibold text-white">{insight.title}</h4>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${insight.impact === "High" ? "bg-red-500/20 text-red-300" : insight.impact === "Medium" ? "bg-yellow-500/20 text-yellow-300" : "bg-green-500/20 text-green-300"}`}
-                >
-                  {insight.impact} Impact
-                </span>
+          {insights.map((insight, index) => {
+            const isExpanded = expandedInsights.has(index);
+            const displayText = isExpanded ? insight.description : truncateText(insight.description);
+            const shouldShowReadMore = insight.description.split(" ").length > 24; // Show read more if more than ~2 lines
+
+            return (
+              <div key={insight.id} className="bg-white/5 rounded-lg p-6 border border-white/10">
+                <div className="flex items-start justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-white">{insight.title}</h4>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${insight.impact === "High" ? "bg-red-500/20 text-red-300" : insight.impact === "Medium" ? "bg-yellow-500/20 text-yellow-300" : "bg-green-500/20 text-green-300"}`}
+                  >
+                    {insight.impact} Impact
+                  </span>
+                </div>
+                <p className="text-white/80 mb-3">{displayText}</p>
+                {shouldShowReadMore && (
+                  <button onClick={() => toggleInsightExpansion(index)} className="mb-3 text-blue-400 hover:text-blue-300 text-xs font-medium transition-colors">
+                    {isExpanded ? "Show Less" : "Read More"}
+                  </button>
+                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/60 bg-white/10 px-2 py-1 rounded">{insight.category}</span>
+                </div>
               </div>
-              <p className="text-white/80 mb-3">{insight.description}</p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/60 bg-white/10 px-2 py-1 rounded">{insight.category}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
