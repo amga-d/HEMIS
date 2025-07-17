@@ -118,7 +118,10 @@ router.get('/kpis', async (req, res) => {
       budgetVariance: {
         value: currentSummary ? 
           parseFloat(currentSummary.budgetAllocated || 0) - parseFloat(currentSummary.budgetUsed || 0) : 0,
-        trend: '5.0' // Static for now
+        trend: calculateTrend(
+          currentSummary ? parseFloat(currentSummary.budgetAllocated || 0) - parseFloat(currentSummary.budgetUsed || 0) : 0,
+          previousSummary ? parseFloat(previousSummary.budgetAllocated || 0) - parseFloat(previousSummary.budgetUsed || 0) : 0
+        )
       }
     };
 
