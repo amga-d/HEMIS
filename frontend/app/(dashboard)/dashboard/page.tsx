@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Header } from "@/components/header"
-import { KPICard } from "@/components/kpi-card"
-import { Users, DollarSign, Clock, RotateCcw, TrendingUp, AlertTriangle, Brain, AlertCircle } from "lucide-react"
-import { Line, LineChart, Pie, PieChart, Cell, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Spinner } from "@/components/ui/spinner"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { useEffect, useState } from "react";
+import { Header } from "@/components/header";
+import { KPICard } from "@/components/kpi-card";
+import { Users, DollarSign, Clock, RotateCcw, TrendingUp, AlertTriangle, Brain, AlertCircle } from "lucide-react";
+import { Line, LineChart, Pie, PieChart, Cell, XAxis, YAxis } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface PatientInflowData {
   month: string;
@@ -19,6 +19,14 @@ interface BudgetData {
   name: string;
   value: number;
   color: string;
+}
+
+interface BudgetDetails {
+  data: BudgetData[];
+  allocated: number;
+  used: number;
+  usedPercentage: number;
+  remaining: number;
 }
 
 interface ComplianceAlert {
@@ -38,14 +46,20 @@ interface DashboardKPIs {
 
 export default function Dashboard() {
   const [patientInflowData, setPatientInflowData] = useState<PatientInflowData[]>([]);
-  const [budgetData, setBudgetData] = useState<BudgetData[]>([]);
+  const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({
+    data: [],
+    allocated: 0,
+    used: 0,
+    usedPercentage: 0,
+    remaining: 0,
+  });
   const [complianceAlerts, setComplianceAlerts] = useState<ComplianceAlert[]>([]);
   const [aiInsights, setAiInsights] = useState<string[]>([]);
   const [kpis, setKpis] = useState<DashboardKPIs>({
-    totalPatients: { value: 0, trend: '0' },
-    revenue: { value: 0, trend: '0' },
-    avgSessionTime: { value: '0 min', trend: '0' },
-    readmissionRate: { value: '0%', trend: '0' }
+    totalPatients: { value: 0, trend: "0" },
+    revenue: { value: 0, trend: "0" },
+    avgSessionTime: { value: "0 min", trend: "0" },
+    readmissionRate: { value: "0%", trend: "0" },
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,40 +68,33 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-        const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || 'default';
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+        const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || "default";
 
         // Fetch all dashboard data in parallel
         const [kpisRes, patientRes, budgetRes, complianceRes, insightsRes] = await Promise.all([
-          fetch(`${baseUrl}/api/dashboard/kpis?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/dashboard/patient-inflow?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/dashboard/budget?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/compliance/alerts?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/dashboard/ai-insights?hospitalId=${hospitalId}`, { credentials: 'include' })
+          fetch(`${baseUrl}/api/dashboard/kpis?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/dashboard/patient-inflow?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/dashboard/budget?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/compliance/alerts?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/dashboard/ai-insights?hospitalId=${hospitalId}`, { credentials: "include" }),
         ]);
 
         if (!kpisRes.ok || !patientRes.ok || !budgetRes.ok || !complianceRes.ok || !insightsRes.ok) {
-          throw new Error('Failed to fetch dashboard data');
+          throw new Error("Failed to fetch dashboard data");
         }
 
-        const [kpisData, patientData, budgetData, complianceData, insightsData] = await Promise.all([
-          kpisRes.json(),
-          patientRes.json(),
-          budgetRes.json(),
-          complianceRes.json(),
-          insightsRes.json()
-        ]);
+        const [kpisData, patientData, budgetData, complianceData, insightsData] = await Promise.all([kpisRes.json(), patientRes.json(), budgetRes.json(), complianceRes.json(), insightsRes.json()]);
 
         setKpis(kpisData);
         setPatientInflowData(patientData);
-        setBudgetData(budgetData);
+        setBudgetDetails(budgetData);
         setComplianceAlerts(complianceData);
         setAiInsights(insightsData);
-
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
         setError(errorMessage);
-        console.error('Dashboard data fetch error:', err);
+        console.error("Dashboard data fetch error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -105,7 +112,7 @@ export default function Dashboard() {
           <p className="text-white/70 text-center">Please wait while we fetch your data...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -115,53 +122,28 @@ export default function Dashboard() {
           <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-red-300">Error Loading Dashboard</AlertTitle>
-            <AlertDescription className="text-red-200">
-              {error}
-            </AlertDescription>
+            <AlertDescription className="text-red-200">{error}</AlertDescription>
           </Alert>
           <div className="mt-6 text-center">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors"
-            >
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors">
               Try Again
             </button>
           </div>
         </div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <div className="p-8">
       <Header title="Dashboard" />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard 
-          title="Total Patients" 
-          value={kpis.totalPatients.value.toLocaleString()} 
-          icon={Users} 
-          trend={{ value: `${kpis.totalPatients.trend}%`, isPositive: parseFloat(kpis.totalPatients.trend) > 0 }} 
-        />
-        <KPICard 
-          title="Revenue" 
-          value={`$${(kpis.revenue.value / 1000000).toFixed(1)}M`} 
-          icon={DollarSign} 
-          trend={{ value: `${kpis.revenue.trend}%`, isPositive: parseFloat(kpis.revenue.trend) > 0 }} 
-        />
-        <KPICard 
-          title="Avg Session Time" 
-          value={kpis.avgSessionTime.value} 
-          icon={Clock} 
-          trend={{ value: `${kpis.avgSessionTime.trend}%`, isPositive: parseFloat(kpis.avgSessionTime.trend) > 0 }} 
-        />
-        <KPICard 
-          title="Readmission Rate" 
-          value={kpis.readmissionRate.value} 
-          icon={RotateCcw} 
-          trend={{ value: `${kpis.readmissionRate.trend}%`, isPositive: parseFloat(kpis.readmissionRate.trend) < 0 }} 
-        />
+        <KPICard title="Total Patients" value={kpis.totalPatients.value.toLocaleString()} icon={Users} trend={{ value: `${kpis.totalPatients.trend}%`, isPositive: parseFloat(kpis.totalPatients.trend) > 0 }} />
+        <KPICard title="Revenue" value={`$${(kpis.revenue.value / 1000000).toFixed(1)}M`} icon={DollarSign} trend={{ value: `${kpis.revenue.trend}%`, isPositive: parseFloat(kpis.revenue.trend) > 0 }} />
+        <KPICard title="Avg Session Time" value={kpis.avgSessionTime.value} icon={Clock} trend={{ value: `${kpis.avgSessionTime.trend}%`, isPositive: parseFloat(kpis.avgSessionTime.trend) > 0 }} />
+        <KPICard title="Readmission Rate" value={kpis.readmissionRate.value} icon={RotateCcw} trend={{ value: `${kpis.readmissionRate.trend}%`, isPositive: parseFloat(kpis.readmissionRate.trend) < 0 }} />
       </div>
 
       {/* Main Content Grid */}
@@ -201,8 +183,8 @@ export default function Dashboard() {
               className="h-full w-full"
             >
               <PieChart>
-                <Pie data={budgetData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value">
-                  {budgetData.map((entry, index) => (
+                <Pie data={budgetDetails.data} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value">
+                  {budgetDetails.data.map((entry: BudgetData, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -211,8 +193,22 @@ export default function Dashboard() {
             </ChartContainer>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-bold text-white">68%</p>
+            <p className="text-3xl font-bold text-white">{budgetDetails.usedPercentage}%</p>
             <p className="text-white/70">Budget Utilized</p>
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Allocated:</span>
+                <span className="text-white">Rp.{budgetDetails.allocated.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Used:</span>
+                <span className="text-white">Rp.{budgetDetails.used.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Remaining:</span>
+                <span className="text-white">Rp.{budgetDetails.remaining.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -234,13 +230,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      alert.status === "overdue"
-                        ? "bg-red-500/20 text-red-300"
-                        : alert.status === "due-soon"
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : "bg-green-500/20 text-green-300"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${alert.status === "overdue" ? "bg-red-500/20 text-red-300" : alert.status === "due-soon" ? "bg-yellow-500/20 text-yellow-300" : "bg-green-500/20 text-green-300"}`}
                   >
                     {alert.status.replace("-", " ")}
                   </span>
@@ -268,5 +258,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

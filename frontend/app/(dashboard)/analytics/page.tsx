@@ -5,7 +5,6 @@ import { Header } from "@/components/header";
 import { Brain, BarChart3, AlertCircle } from "lucide-react";
 import { Line, XAxis, YAxis, Area, AreaChart } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
@@ -51,8 +50,8 @@ export default function Analytics() {
 
         // Fetch forecast data and insights in parallel
         const [forecastRes, insightsRes] = await Promise.all([
-          fetch(`${baseUrl}/api/analytics/forecast/${selectedModel}?hospitalId=${hospitalId}`, { credentials: 'include' }), 
-          fetch(`${baseUrl}/api/analytics/insights/optimization?hospitalId=${hospitalId}`, { credentials: 'include' })
+          fetch(`${baseUrl}/api/analytics/forecast/${selectedModel}?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/analytics/insights/optimization?hospitalId=${hospitalId}`, { credentials: "include" }),
         ]);
 
         if (!forecastRes.ok || !insightsRes.ok) {
@@ -84,7 +83,7 @@ export default function Analytics() {
           <p className="text-white/70 text-center">Please wait while we fetch your analytics data...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -94,21 +93,16 @@ export default function Analytics() {
           <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-red-300">Error Loading Analytics</AlertTitle>
-            <AlertDescription className="text-red-200">
-              {error}
-            </AlertDescription>
+            <AlertDescription className="text-red-200">{error}</AlertDescription>
           </Alert>
           <div className="mt-6 text-center">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors"
-            >
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors">
               Try Again
             </button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   const formatValue = (value: number | null): string => {
@@ -135,14 +129,15 @@ export default function Analytics() {
         </h3>
         <div className="flex flex-wrap gap-4">
           {forecastModels.map((model) => (
-            <Button
+            <button
               key={model.id}
               onClick={() => setSelectedModel(model.id)}
-              variant={selectedModel === model.id ? "default" : "outline"}
-              className={`${selectedModel === model.id ? "bg-blue-600 text-white" : "glass-card border-white/20 text-white hover:bg-white/10"}`}
+              className={`min-w-[200px] h-10 px-4 py-2 flex items-center justify-center text-sm font-medium rounded-md border transition-colors ${
+                selectedModel === model.id ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700" : "bg-transparent border-white/20 text-white hover:bg-white/10"
+              }`}
             >
               {model.name}
-            </Button>
+            </button>
           ))}
         </div>
       </div>

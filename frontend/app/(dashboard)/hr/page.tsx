@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Header } from "@/components/header"
-import { KPICard } from "@/components/kpi-card"
-import { Users, UserMinus, Star, GraduationCap, Award, AlertCircle } from "lucide-react"
-import { Bar, BarChart, Line, LineChart, XAxis, YAxis } from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Spinner } from "@/components/ui/spinner"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { useEffect, useState } from "react";
+import { Header } from "@/components/header";
+import { KPICard } from "@/components/kpi-card";
+import { Users, UserMinus, Star, GraduationCap, Award, AlertCircle } from "lucide-react";
+import { Bar, BarChart, Line, LineChart, XAxis, YAxis } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface StaffingData {
   department: string;
@@ -42,10 +42,10 @@ export default function HRReport() {
   const [hiringTrends, setHiringTrends] = useState<HiringTrend[]>([]);
   const [topPerformers, setTopPerformers] = useState<TopPerformer[]>([]);
   const [kpis, setKpis] = useState<HRKPIs>({
-    totalStaff: { value: 0, trend: '0' },
-    turnoverRate: { value: '0', trend: '0' },
-    satisfactionScore: { value: '0', trend: '0' },
-    avgTrainingHours: { value: '0', trend: '0' }
+    totalStaff: { value: 0, trend: "0" },
+    turnoverRate: { value: "0", trend: "0" },
+    satisfactionScore: { value: "0", trend: "0" },
+    avgTrainingHours: { value: "0", trend: "0" },
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,37 +54,31 @@ export default function HRReport() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-        const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || 'default';
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+        const hospitalId = process.env.NEXT_PUBLIC_HOSPITAL_ID || "default";
 
         // Fetch all HR data in parallel
         const [staffingRes, trendsRes, performersRes, kpisRes] = await Promise.all([
-          fetch(`${baseUrl}/api/hr/staffing?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/hr/hiring-trends?hospitalId=${hospitalId}`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/hr/top-performers?hospitalId=${hospitalId}&limit=4`, { credentials: 'include' }),
-          fetch(`${baseUrl}/api/hr/kpis?hospitalId=${hospitalId}`, { credentials: 'include' })
+          fetch(`${baseUrl}/api/hr/staffing?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/hr/hiring-trends?hospitalId=${hospitalId}`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/hr/top-performers?hospitalId=${hospitalId}&limit=4`, { credentials: "include" }),
+          fetch(`${baseUrl}/api/hr/kpis?hospitalId=${hospitalId}`, { credentials: "include" }),
         ]);
 
         if (!staffingRes.ok || !trendsRes.ok || !performersRes.ok || !kpisRes.ok) {
-          throw new Error('Failed to fetch HR data');
+          throw new Error("Failed to fetch HR data");
         }
 
-        const [staffingData, trendsData, performersData, kpisData] = await Promise.all([
-          staffingRes.json(),
-          trendsRes.json(),
-          performersRes.json(),
-          kpisRes.json()
-        ]);
+        const [staffingData, trendsData, performersData, kpisData] = await Promise.all([staffingRes.json(), trendsRes.json(), performersRes.json(), kpisRes.json()]);
 
         setStaffingData(staffingData);
         setHiringTrends(trendsData);
         setTopPerformers(performersData);
         setKpis(kpisData);
-
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
         setError(errorMessage);
-        console.error('HR data fetch error:', err);
+        console.error("HR data fetch error:", err);
       } finally {
         setIsLoading(false);
       }
@@ -102,7 +96,7 @@ export default function HRReport() {
           <p className="text-white/70 text-center">Please wait while we fetch your HR information...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -112,21 +106,16 @@ export default function HRReport() {
           <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle className="text-red-300">Error Loading HR Data</AlertTitle>
-            <AlertDescription className="text-red-200">
-              {error}
-            </AlertDescription>
+            <AlertDescription className="text-red-200">{error}</AlertDescription>
           </Alert>
           <div className="mt-6 text-center">
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors"
-            >
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white transition-colors">
               Try Again
             </button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -135,30 +124,10 @@ export default function HRReport() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <KPICard 
-          title="Total Staff" 
-          value={kpis.totalStaff.value.toString()} 
-          icon={Users} 
-          trend={{ value: `${kpis.totalStaff.trend}%`, isPositive: parseFloat(kpis.totalStaff.trend) > 0 }} 
-        />
-        <KPICard 
-          title="Turnover Rate" 
-          value={`${kpis.turnoverRate.value}%`} 
-          icon={UserMinus} 
-          trend={{ value: `${kpis.turnoverRate.trend}%`, isPositive: parseFloat(kpis.turnoverRate.trend) < 0 }} 
-        />
-        <KPICard 
-          title="Satisfaction Score" 
-          value={`${kpis.satisfactionScore.value}/5`} 
-          icon={Star} 
-          trend={{ value: kpis.satisfactionScore.trend, isPositive: parseFloat(kpis.satisfactionScore.trend) > 0 }} 
-        />
-        <KPICard
-          title="Avg Training Hours"
-          value={`${kpis.avgTrainingHours.value}h`}
-          icon={GraduationCap}
-          trend={{ value: `${kpis.avgTrainingHours.trend}h`, isPositive: parseFloat(kpis.avgTrainingHours.trend) > 0 }}
-        />
+        <KPICard title="Total Staff" value={kpis.totalStaff.value.toString()} icon={Users} trend={{ value: `${kpis.totalStaff.trend}%`, isPositive: parseFloat(kpis.totalStaff.trend) > 0 }} />
+        <KPICard title="Turnover Rate" value={`${kpis.turnoverRate.value}%`} icon={UserMinus} trend={{ value: `${kpis.turnoverRate.trend}%`, isPositive: parseFloat(kpis.turnoverRate.trend) < 0 }} />
+        <KPICard title="Satisfaction Score" value={`${kpis.satisfactionScore.value}/5`} icon={Star} trend={{ value: kpis.satisfactionScore.trend, isPositive: parseFloat(kpis.satisfactionScore.trend) > 0 }} />
+        <KPICard title="Avg Training Hours" value={`${kpis.avgTrainingHours.value}h`} icon={GraduationCap} trend={{ value: `${kpis.avgTrainingHours.trend}h`, isPositive: parseFloat(kpis.avgTrainingHours.trend) > 0 }} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -170,7 +139,7 @@ export default function HRReport() {
               current: { label: "Current Staff", color: "#3A86FF" },
               required: { label: "Required Staff", color: "#F59E0B" },
             }}
-            className="h-80"
+            className="h-75"
           >
             <BarChart data={staffingData}>
               <XAxis dataKey="department" stroke="#ffffff60" />
@@ -190,11 +159,11 @@ export default function HRReport() {
               hires: { label: "New Hires", color: "#4CAF50" },
               departures: { label: "Departures", color: "#F44336" },
             }}
-            className="h-80"
+            className="h-70"
           >
             <LineChart data={hiringTrends}>
-              <XAxis dataKey="month" stroke="#ffffff60" />
-              <YAxis stroke="#ffffff60" />
+              <XAxis dataKey="month" stroke="#ffffff80" />
+              <YAxis stroke="#ffffff80" />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Line type="monotone" dataKey="hires" stroke="#4CAF50" strokeWidth={3} />
               <Line type="monotone" dataKey="departures" stroke="#F44336" strokeWidth={3} />
@@ -229,5 +198,5 @@ export default function HRReport() {
         </div>
       </div>
     </div>
-  )
+  );
 }
