@@ -304,6 +304,8 @@ model AiInsight {
   insightType   InsightType @map("insight_type")
   title         String
   insightText   String      @map("insight_text")
+  impact        String?     @default("Medium")
+  category      String?     @default("General")
   generatedDate DateTime    @default(now()) @map("generated_date")
   isActive      Boolean     @default(true) @map("is_active")
   hospital      Hospital    @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
