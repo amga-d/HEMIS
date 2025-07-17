@@ -1,24 +1,25 @@
 var express = require('express');
 var router = express.Router();
 const prisma = require('../services/prismaClient');
+const { calculateTrend } = require('../helpers/hrHelpers');
 
 /* GET employees list */
 router.get('/employees', async (req, res) => {
   try {
     const { hospitalId } = req.query;
-    
+
     const employees = await prisma.employee.findMany({
       where: hospitalId ? { hospitalId } : {},
       include: {
         department: {
           select: {
-            name: true
-          }
-        }
+            name: true,
+          },
+        },
       },
       orderBy: {
-        firstName: 'asc'
-      }
+        firstName: 'asc',
+      },
     });
 
     res.json(employees);
@@ -32,39 +33,43 @@ router.get('/employees', async (req, res) => {
 router.get('/staffing', async (req, res) => {
   try {
     const { hospitalId } = req.query;
-    
-    // Get staffing by department
-    const staffingData = await prisma.employee.groupBy({
-      by: ['departmentId'],
-      where: { 
-        hospitalId,
-        status: 'ACTIVE'
+
+    // Get department staffing data from database
+    const departmentStaffing = await prisma.departmentStaffing.findMany({
+      where: { hospitalId },
+      include: {
+        department: {
+          select: {
+            name: true,
+          },
+        },
       },
-      _count: {
-        id: true
-      },
-      _avg: {
-        performanceScore: true
-      }
     });
 
-    // Get department details
-    const departments = await prisma.department.findMany({
-      where: { hospitalId }
+    // Get average performance scores by department
+    const departmentPerformances = await prisma.employee.groupBy({
+      by: ['departmentId'],
+      where: {
+        hospitalId,
+        status: 'ACTIVE',
+        performanceScore: { not: null },
+      },
+      _avg: {
+        performanceScore: true,
+      },
     });
 
     // Combine data
-    const staffingLevels = departments.map(dept => {
-      const staffData = staffingData.find(s => s.departmentId === dept.id);
-      const current = staffData?._count.id || 0;
-      // Simulate required staffing levels
-      const required = Math.ceil(current * (1 + Math.random() * 0.2));
-      
+    const staffingLevels = departmentStaffing.map((staffing) => {
+      const performanceData = departmentPerformances.find(
+        (p) => p.departmentId === staffing.departmentId
+      );
+
       return {
-        department: dept.name,
-        current,
-        required,
-        avgPerformance: staffData?._avg.performanceScore || 0
+        department: staffing.department.name,
+        current: staffing.currentStaff,
+        required: staffing.requiredStaff,
+        avgPerformance: performanceData?._avg.performanceScore || 0,
       };
     });
 
@@ -78,7 +83,7 @@ router.get('/staffing', async (req, res) => {
 router.get('/hiring-trends', async (req, res) => {
   try {
     const { hospitalId } = req.query;
-    
+
     // Get last 6 months of hiring data
     const months = [];
     for (let i = 5; i >= 0; i--) {
@@ -88,36 +93,38 @@ router.get('/hiring-trends', async (req, res) => {
       months.push(date);
     }
 
-    const trends = await Promise.all(months.map(async (month) => {
-      const nextMonth = new Date(month);
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const trends = await Promise.all(
+      months.map(async (month) => {
+        const nextMonth = new Date(month);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-      const hires = await prisma.employee.count({
-        where: {
-          hospitalId,
-          hireDate: {
-            gte: month,
-            lt: nextMonth
-          }
-        }
-      });
+        const hires = await prisma.employee.count({
+          where: {
+            hospitalId,
+            hireDate: {
+              gte: month,
+              lt: nextMonth,
+            },
+          },
+        });
 
-      const departures = await prisma.employee.count({
-        where: {
-          hospitalId,
-          departureDate: {
-            gte: month,
-            lt: nextMonth
-          }
-        }
-      });
+        const departures = await prisma.employee.count({
+          where: {
+            hospitalId,
+            departureDate: {
+              gte: month,
+              lt: nextMonth,
+            },
+          },
+        });
 
-      return {
-        month: month.toLocaleDateString('en-US', { month: 'short' }),
-        hires,
-        departures
-      };
-    }));
+        return {
+          month: month.toLocaleDateString('en-US', { month: 'short' }),
+          hires,
+          departures,
+        };
+      })
+    );
 
     res.json(trends);
   } catch (error) {
@@ -129,25 +136,36 @@ router.get('/hiring-trends', async (req, res) => {
 router.get('/top-performers', async (req, res) => {
   try {
     const { hospitalId, limit = 5 } = req.query;
+
+    // Get top performers with their latest performance evaluation
     const topPerformers = await prisma.employee.findMany({
-      where: { 
+      where: {
         hospitalId,
         performanceScore: { not: null },
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       },
       orderBy: { performanceScore: 'desc' },
       take: parseInt(limit),
-      include: { 
-        department: true
-      }
+      include: {
+        department: true,
+        performanceEvaluations: {
+          orderBy: { evaluationPeriod: 'desc' },
+          take: 1,
+          select: {
+            achievementDescription: true,
+          },
+        },
+      },
     });
 
-    const formattedPerformers = topPerformers.map(emp => ({
+    const formattedPerformers = topPerformers.map((emp) => ({
       name: `${emp.firstName} ${emp.lastName}`,
       department: emp.department?.name || 'N/A',
       score: parseFloat(emp.performanceScore || 0),
       position: emp.position,
-      achievement: 'Excellence Award' // Static for now
+      achievement:
+        emp.performanceEvaluations[0]?.achievementDescription ||
+        'Outstanding Performance',
     }));
 
     res.json(formattedPerformers);
@@ -160,82 +178,77 @@ router.get('/top-performers', async (req, res) => {
 router.get('/kpis', async (req, res) => {
   try {
     const { hospitalId } = req.query;
-    
-    // Total active staff
-    const totalStaff = await prisma.employee.count({
-      where: { 
-        hospitalId,
-        status: 'ACTIVE'
-      }
+
+    if (!hospitalId) {
+      return res.status(400).json({ error: 'Hospital ID is required' });
+    }
+
+    // Get the two most recent HR monthly stats
+    const recentStats = await prisma.hrMonthlyStats.findMany({
+      where: { hospitalId },
+      orderBy: { monthYear: 'desc' },
+      take: 2,
     });
 
-    // Turnover rate (last 12 months)
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    
-    const departures = await prisma.employee.count({
-      where: {
-        hospitalId,
-        departureDate: {
-          gte: oneYearAgo
-        }
-      }
-    });
+    if (recentStats.length === 0) {
+      return res.status(404).json({ error: 'No HR monthly stats found' });
+    }
 
-    const turnoverRate = totalStaff > 0 ? ((departures / totalStaff) * 100).toFixed(1) : 0;
+    // Use the most recent stats for current values
+    const current = recentStats[0];
+    const currentMetrics = {
+      totalStaff: current.totalStaff,
+      turnoverRate: parseFloat(current.turnoverRate || 0),
+      avgPerformance: parseFloat(current.avgPerformanceScore || 0),
+      avgTrainingHours: parseFloat(current.avgTrainingHours || 0),
+    };
 
-    // Average performance score
-    const avgPerformance = await prisma.employee.aggregate({
-      where: {
-        hospitalId,
-        status: 'ACTIVE',
-        performanceScore: { not: null }
-      },
-      _avg: {
-        performanceScore: true
-      }
-    });
+    // Calculate trends if we have previous month data
+    let staffTrend = '0.0';
+    let turnoverTrend = '0.0';
+    let satisfactionTrend = '0.0';
+    let trainingTrend = '0.0';
 
-    // Calculate average training hours from employee training records
-    const currentYear = new Date().getFullYear();
-    const yearStart = new Date(currentYear, 0, 1);
-    
-    const trainingStats = await prisma.employeeTraining.aggregate({
-      where: {
-        employee: {
-          hospitalId,
-          status: 'ACTIVE'
-        },
-        trainingDate: {
-          gte: yearStart
-        }
-      },
-      _avg: {
-        hoursCompleted: true
-      }
-    });
+    if (recentStats.length >= 2) {
+      const previous = recentStats[1];
+
+      staffTrend = calculateTrend(current.totalStaff, previous.totalStaff);
+      turnoverTrend = calculateTrend(
+        parseFloat(current.turnoverRate || 0),
+        parseFloat(previous.turnoverRate || 0)
+      );
+      satisfactionTrend = calculateTrend(
+        parseFloat(current.avgPerformanceScore || 0),
+        parseFloat(previous.avgPerformanceScore || 0)
+      );
+      trainingTrend = calculateTrend(
+        parseFloat(current.avgTrainingHours || 0),
+        parseFloat(previous.avgTrainingHours || 0)
+      );
+    }
 
     const kpis = {
       totalStaff: {
-        value: totalStaff,
-        trend: '4.0' // Static for now
+        value: currentMetrics.totalStaff,
+        trend: staffTrend,
       },
       turnoverRate: {
-        value: turnoverRate,
-        trend: '-1.5'
+        value: currentMetrics.turnoverRate.toFixed(1),
+        trend: turnoverTrend,
       },
       satisfactionScore: {
-        value: (parseFloat(avgPerformance._avg.performanceScore || 0) / 2).toFixed(1), // Convert to 5-point scale
-        trend: '0.3'
+        value: currentMetrics.avgPerformance.toFixed(1),
+        trend: satisfactionTrend,
       },
       avgTrainingHours: {
-        value: trainingStats._avg.hoursCompleted ? Math.round(trainingStats._avg.hoursCompleted).toString() : '42',
-        trend: '8'
-      }
+        value: Math.round(currentMetrics.avgTrainingHours).toString(),
+        trend: trainingTrend,
+      },
     };
 
     res.json(kpis);
   } catch (error) {
+    console.error('Error fetching HR KPIs:', error);
     res.status(500).json({ error: error.message });
   }
 });
