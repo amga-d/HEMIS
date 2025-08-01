@@ -123,3 +123,6 @@ fix: resolve CORS issue in backend
 ## 📬 Contact
 
 For questions or discussions, feel free to open an issue or contact the maintainer.
+
+Color Theme: from-blue-800 via-cyan-700 to-indigo-900
+from-cyan-800 via-teal-700 to-slate-800
